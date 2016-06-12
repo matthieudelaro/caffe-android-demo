@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.sh1r0.caffe_android_demo"
+        applicationId "com.sh1r0.caffe_android_demo2"
         minSdkVersion 15
         targetSdkVersion 22
         versionCode 1

@@ -270,19 +270,21 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         bmp = toGrayscale(bmp);
         String newPath = saveToFile(bmp, imgPath + ".gray.png");
 
-        // scale down
+        // scale down:  4000x3000 => ~90*60
         int height = bmp.getHeight();
         int width = bmp.getWidth();
         if (height != 60 || width != 60) {
             if (height > width) {
                 bmp = Bitmap.createScaledBitmap(bmp,
-                    Math.round(60.f * ((float)width / (float)height)),
+                    // Math.round(60.f * ((float)width / (float)height)),
                     60,
+                    Math.round(60.f * ((float)height/(float)width)),
                     true);
             } else if (height < width){
                 bmp = Bitmap.createScaledBitmap(bmp,
+                    Math.round(60.f * ((float)width / (float)height)),
                     60,
-                    Math.round(60.f * ((float)height/(float)width)),
+                    // Math.round(60.f * ((float)height/(float)width)),
                     true);
             } else {
                 bmp = Bitmap.createScaledBitmap(bmp, 60, 60, true);
@@ -420,9 +422,9 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         @Override
         protected Integer doInBackground(String... strings) {
             startTime = SystemClock.uptimeMillis();
-            // float[] theta = caffeMobile.predictTheta(strings[0], 6);
-            // Bitmap bmpTransformation = int2bitmap(visualize(bitmap2int(bmp), theta));
-            // listener.onTaskCompletedTheta(theta, bmpTransformation);
+            float[] theta = caffeMobile.predictTheta(strings[0], 6);
+            Bitmap bmpTransformation = int2bitmap(visualize(bitmap2int(bmp), theta));
+            listener.onTaskCompletedTheta(theta, bmpTransformation);
             // listener.onTaskCompletedTheta(theta, inputBitmap);
             return caffeMobile.predictImage(strings[0])[0];
         }
@@ -563,15 +565,16 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         // int[][][] res = new int[3][height][width];
         // int[][][] out_img = new int[in_img.length][in_img[0].length][in_img[0][0].length];
         int[][][] out_img = in_img;
-        char imgW = 60;
-        char thetaL = 6;
+        // final int imgW = 60;
+        int imgW = Math.min(in_img[0].length, in_img[0][0].length);
+        final int thetaL = 6;
         // float temp1[6];
         float[][] in_coor = new float[40][2];
         float[][] out_coor = new float[40][2];
 
 
         char i, j, k;
-
+        Log.d(LOG_TAG, "dimensions " + String.valueOf(in_img.length) + "x" + String.valueOf(in_img[0].length) + "x" + String.valueOf(in_img[0][0].length));
         //out_img = in_img;
         //x = col                      //y = row / line
         // in_coor[0][0] = 0       ; in_coor[0][1] = 0;
@@ -602,6 +605,8 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
             out_coor[i][1] = in_theta[3]*in_coor[i][0] + in_theta[4]*in_coor[i][1] + in_theta[5];
             out_coor[i][0] += (imgW + 1) / 2;
             out_coor[i][1] += (imgW + 1) / 2;
+            out_coor[i][0] = Math.round(out_coor[i][0]);
+            out_coor[i][1] = Math.round(out_coor[i][1]);
             if (out_coor[i][0] < 0) out_coor[i][0] = 0;
             if (out_coor[i][1] < 0) out_coor[i][1] = 0;
             if (out_coor[i][0] > imgW-1) out_coor[i][0] = imgW-1;
@@ -610,9 +615,11 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         /////////////////////////////////////////////////////////////////////////////////
 
         for (i = 0; i < 40; i++){
-            out_img[0][(int)out_coor[i][0]][(int)out_coor[i][1]] = 255;
-            out_img[1][(int)out_coor[i][0]][(int)out_coor[i][1]] = 0;
-            out_img[2][(int)out_coor[i][0]][(int)out_coor[i][1]] = 0;
+            Log.d(LOG_TAG, "out_coor " + String.valueOf(out_coor[i][0]) + " " + String.valueOf(out_coor[i][1]));
+            // Log.d(LOG_TAG, "" + String.valueOf());
+            out_img[0][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 255;
+            out_img[1][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 0;
+            out_img[2][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 0;
         }
 
 

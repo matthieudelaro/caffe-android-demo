@@ -1,0 +1,55 @@
+# Put this folder in parent folder of android lib repo, and android app repo:
+# ./
+#     ./nut.yml
+#     ./caffe-android-lib
+#     ./caffe-android-demo
+
+syntax_version: "7"
+project_name: describe
+container_working_directory: /opt/nut/describe
+docker_image: bitriseio/android-ndk
+# enable_current_user: true
+# apt-get update && apt-get install cmake -y
+volumes:
+  main:
+    host_path: .
+    container_path: /opt/nut/describe
+  root:
+    host_path: ./root
+    container_path: /root
+  time:
+    host_path: /etc/localtime
+    container_path: /etc/localtime
+    options: ro
+macros:
+  build-caffe:
+    usage: build caffe in the container
+    container_working_directory: /opt/nut/describe/caffe-android-lib
+    actions:
+    - ./build.sh /opt/android-ndk
+  build-only-caffe:
+    usage: build caffe in the container
+    container_working_directory: /opt/nut/describe/caffe-android-lib
+    actions:
+    - export NDK_ROOT=/opt/android-ndk
+    - ./scripts/build_caffe.sh -j8
+  build-apk:
+    usage: build the apk in the container
+    container_working_directory: /opt/nut/describe/caffe-android-demo
+    actions:
+    - chmod +x gradlew
+    # - ./gradlew assembleDebug
+    - ./gradlew assembleDebug --offline
+    # - chmod +x gradlew.bat
+    # - ./gradlew.bat
+  deploy-caffe-to-app:
+    usage: use after compiling caffe, to use it in the app
+    actions:
+    - rm caffe-android-demo/app/src/main/jniLibs/armeabi-v7a/* && cp caffe-android-lib/android_lib/caffe/lib/* caffe-android-demo/app/src/main/jniLibs/armeabi-v7a/
+  run:
+    usage: run the app on attached android device
+    actions:
+    - echo "You should run this command on the host:"
+    - echo 'adb install -r caffe-android-demo/app/build/outputs/apk/app-debug.apk && adb shell am start -n "com.sh1r0.caffe_android_demo2/com.sh1r0.caffe_android_demo2.MainActivity"'
+    - echo '(No need to install Android Studio. On MacOS, simply "brew install android-platform-tools" to install adb (1.2Mo))'
+

@@ -55,7 +55,9 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
     private Uri fileUri;
     private ProgressDialog dialogPreprocess;
     private ProgressDialog dialog;
+    private float[] theta;
     private Bitmap bmp;
+    private Bitmap bmpTransformation;
     private CaffeMobile caffeMobile;
     File sdcard = Environment.getExternalStorageDirectory();
     // String modelDir = sdcard.getAbsolutePath() + "/caffe_mobile/bvlc_reference_caffenet";
@@ -160,7 +162,7 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         Log.d(LOG_TAG, String.valueOf(bmp.getHeight()));
         Log.d(LOG_TAG, String.valueOf(bmp.getWidth()));
 
-        dialogPreprocess = ProgressDialog.show(MainActivity.this, "Preprocessing...", "Wait for one sec...", true);
+        // dialogPreprocess = ProgressDialog.show(MainActivity.this, "Preprocessing...", "Wait for one sec...", true);
         // imgPath = pre_preprocess(imgPath);
         PreprocessTask preprocessTask = new PreprocessTask(MainActivity.this, MainActivity.this);
         preprocessTask.execute(imgPath);
@@ -200,18 +202,18 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
 
     @Override
     public void onPreprocessingTaskCompleted(String[] filePaths) {
-        ivCaptured.setImageBitmap(bmp);
+        // ivCaptured.setImageBitmap(bmp);
         // tvLabel.setText(IMAGENET_CLASSES[result]);
-        tvLabel.setText("Proprocessing: done");
+        // tvLabel.setText("Proprocessing: done");
 
-        if (dialogPreprocess != null) {
-            dialogPreprocess.dismiss();
-        }
+        // if (dialogPreprocess != null) {
+        //     dialogPreprocess.dismiss();
+        // }
 
 
-        dialog = ProgressDialog.show(MainActivity.this, "Predicting...", "Wait for one sec...", true);
+        // dialog = ProgressDialog.show(MainActivity.this, "Predicting...", "Wait for one sec...", true);
 
-        CNNTask cnnTask = new CNNTask(MainActivity.this);
+        CNNTask cnnTask = new CNNTask(MainActivity.this, bmp);
         cnnTask.execute(filePaths[filePaths.length - 1]);
     }
 
@@ -408,14 +410,20 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
     private class CNNTask extends AsyncTask<String, Void, Integer> {
         private CNNListener listener;
         private long startTime;
+        private Bitmap inputBitmap;
 
-        public CNNTask(CNNListener listener) {
+        public CNNTask(CNNListener listener, Bitmap inputBitmap) {
             this.listener = listener;
+            this.inputBitmap = inputBitmap;
         }
 
         @Override
         protected Integer doInBackground(String... strings) {
             startTime = SystemClock.uptimeMillis();
+            // float[] theta = caffeMobile.predictTheta(strings[0], 6);
+            // Bitmap bmpTransformation = int2bitmap(visualize(bitmap2int(bmp), theta));
+            // listener.onTaskCompletedTheta(theta, bmpTransformation);
+            // listener.onTaskCompletedTheta(theta, inputBitmap);
             return caffeMobile.predictImage(strings[0])[0];
         }
 
@@ -429,15 +437,27 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
 
     @Override
     public void onTaskCompleted(int result) {
-        ivCaptured.setImageBitmap(bmp);
+        // ivCaptured.setImageBitmap(bmp);
+        ivCaptured.setImageBitmap(bmpTransformation);
+
         // tvLabel.setText(IMAGENET_CLASSES[result]);
         tvLabel.setText(String.valueOf(result));
         btnCamera.setEnabled(true);
         btnSelect.setEnabled(true);
 
-        if (dialog != null) {
-            dialog.dismiss();
-        }
+        // if (dialogPreprocess != null) {
+        //     dialogPreprocess.dismiss();
+        // }
+
+        // if (dialog != null) {
+        //     dialog.dismiss();
+        // }
+    }
+
+    @Override
+    public void onTaskCompletedTheta(float[] theta, Bitmap bmpTransformation) {
+        this.theta = theta;
+        this.bmpTransformation = bmpTransformation;
     }
 
     /**
@@ -496,8 +516,7 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
     }
 
     public static Bitmap rotateBitmap(Bitmap bitmap, int orientation) {
-
-    Matrix matrix = new Matrix();
+        Matrix matrix = new Matrix();
         switch (orientation) {
             case ExifInterface.ORIENTATION_NORMAL:
                 return bitmap;
@@ -539,53 +558,107 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         }
     }
 
-    // public void visualize(int (*in_img)[60][60], float *in_theta, int( *out_img)[60][60])
-    // {
-    //     char imgW = 60;
-    //     char thetaL = 6;
-    //     float temp1[6];
-    //     float in_coor[4][2];
-    //     float out_coor[4][2];
-    //     char i, j;
+    // public void visualize(int[][][] in_img, float[] in_theta, int[][][] out_img) {
+    public int[][][] visualize(int[][][] in_img, float[] in_theta) {
+        // int[][][] res = new int[3][height][width];
+        // int[][][] out_img = new int[in_img.length][in_img[0].length][in_img[0][0].length];
+        int[][][] out_img = in_img;
+        char imgW = 60;
+        char thetaL = 6;
+        // float temp1[6];
+        float[][] in_coor = new float[40][2];
+        float[][] out_coor = new float[40][2];
 
-    //     //out_img = in_img;
-    //     //x                       //y
-    //     in_coor[0][0] = 0       ; in_coor[0][1] = 0;
-    //     in_coor[1][0] = 0       ; in_coor[1][1] = imgW - 1;
-    //     in_coor[2][0] = imgW - 1; in_coor[2][1] = imgW - 1;
-    //     in_coor[3][0] = imgW - 1; in_coor[3][1] = 0;
-    //     /////////////////////////////////////////////////////////////////////////////////
-    //     for (i = 0; i < thetaL; i++) in_theta[i] /= 2;
 
-    //     in_theta[2] *= imgW;
-    //     in_theta[5] *= imgW;
-    //     /////////////////////////////////////////////////////////////////////////////////
+        char i, j, k;
 
-    //     for (i = 0; i < 4; i++){
-    //         in_coor[i][0] -= (imgW + 1) / 2;
-    //         in_coor[i][1] -= (imgW + 1) / 2;
-    //         out_coor[i][0] = in_theta[0]*in_coor[i][0] + in_theta[1]*in_coor[i][1] + in_theta[2];
-    //         out_coor[i][1] = in_theta[3]*in_coor[i][0] + in_theta[4]*in_coor[i][1] + in_theta[5];
-    //         out_coor[i][0] += (imgW + 1) / 2;
-    //         out_coor[i][1] += (imgW + 1) / 2;
-    //         if (out_coor[i][0] < 0) out_coor[i][0] = 0;
-    //         if (out_coor[i][1] < 0) out_coor[i][1] = 0;
-    //     }
-    //     /////////////////////////////////////////////////////////////////////////////////
+        //out_img = in_img;
+        //x = col                      //y = row / line
+        // in_coor[0][0] = 0       ; in_coor[0][1] = 0;
+        // in_coor[1][0] = 0       ; in_coor[1][1] = imgW - 1;
+        // in_coor[2][0] = imgW - 1; in_coor[2][1] = imgW - 1;
+        // in_coor[3][0] = imgW - 1; in_coor[3][1] = 0;
 
-    //     for (i = 0; i < 4; i++){
-    //         out_img[0][(int)out_coor[i][1]][(int)out_coor[i][0]] = 255;
-    //         out_img[1][(int)out_coor[i][1]][(int)out_coor[i][0]] = 0;
-    //         out_img[2][(int)out_coor[i][1]][(int)out_coor[i][0]] = 0;
-    //     }
+        for (i = 0; i < 10; i++){
+            in_coor[i     ][0] = 0            ; in_coor[i     ][1] = i * imgW / 10;
+            in_coor[i + 10][0] = imgW - 1     ; in_coor[i + 10][1] = i * imgW / 10;
+            in_coor[i + 20][0] = i * imgW / 10; in_coor[i + 20][1] = 0            ;
+            in_coor[i + 30][0] = i * imgW / 10; in_coor[i + 30][1] = imgW - 1     ;
 
-    //     /////////////////////////////////////////////////////////////////////////////////
-    //     //printf("theta : \n");
-    //     //printf("%f %f %f\n", in_theta[0], in_theta[1], in_theta[2]);
-    //     //printf("%f %f %f\n", in_theta[3], in_theta[4], in_theta[5]);
-    //     //printf("\n");
+        }
+        // for (i = 0; i < 40; i++) printf("%dth : x : %f, y : %f\n",i, in_coor[i][0], in_coor[i][1]);
+        // printf("\n");
+        /////////////////////////////////////////////////////////////////////////////////
+        for (i = 0; i < thetaL; i++) in_theta[i] /= 2;
 
-    //     //printf("x : %f, y : %f\n", out_coor[0][0], out_coor[0][1]);
-    // }
+        in_theta[2] *= imgW;
+        in_theta[5] *= imgW;
+        /////////////////////////////////////////////////////////////////////////////////
+
+        for (i = 0; i < 40; i++){
+            in_coor[i][0] -= (imgW + 1) / 2;
+            in_coor[i][1] -= (imgW + 1) / 2;
+            out_coor[i][0] = in_theta[0]*in_coor[i][0] + in_theta[1]*in_coor[i][1] + in_theta[2];
+            out_coor[i][1] = in_theta[3]*in_coor[i][0] + in_theta[4]*in_coor[i][1] + in_theta[5];
+            out_coor[i][0] += (imgW + 1) / 2;
+            out_coor[i][1] += (imgW + 1) / 2;
+            if (out_coor[i][0] < 0) out_coor[i][0] = 0;
+            if (out_coor[i][1] < 0) out_coor[i][1] = 0;
+            if (out_coor[i][0] > imgW-1) out_coor[i][0] = imgW-1;
+            if (out_coor[i][1] > imgW-1) out_coor[i][1] = imgW-1;
+        }
+        /////////////////////////////////////////////////////////////////////////////////
+
+        for (i = 0; i < 40; i++){
+            out_img[0][(int)out_coor[i][0]][(int)out_coor[i][1]] = 255;
+            out_img[1][(int)out_coor[i][0]][(int)out_coor[i][1]] = 0;
+            out_img[2][(int)out_coor[i][0]][(int)out_coor[i][1]] = 0;
+        }
+
+
+
+
+        // char i, j;
+
+        // //out_img = in_img;
+        // //x                       //y
+        // in_coor[0][0] = 0       ; in_coor[0][1] = 0;
+        // in_coor[1][0] = 0       ; in_coor[1][1] = imgW - 1;
+        // in_coor[2][0] = imgW - 1; in_coor[2][1] = imgW - 1;
+        // in_coor[3][0] = imgW - 1; in_coor[3][1] = 0;
+        // /////////////////////////////////////////////////////////////////////////////////
+        // for (i = 0; i < thetaL; i++) in_theta[i] /= 2;
+
+        // in_theta[2] *= imgW;
+        // in_theta[5] *= imgW;
+        // /////////////////////////////////////////////////////////////////////////////////
+
+        // for (i = 0; i < 4; i++) {
+        //     in_coor[i][0] -= (imgW + 1) / 2;
+        //     in_coor[i][1] -= (imgW + 1) / 2;
+        //     out_coor[i][0] = in_theta[0]*in_coor[i][0] + in_theta[1]*in_coor[i][1] + in_theta[2];
+        //     out_coor[i][1] = in_theta[3]*in_coor[i][0] + in_theta[4]*in_coor[i][1] + in_theta[5];
+        //     out_coor[i][0] += (imgW + 1) / 2;
+        //     out_coor[i][1] += (imgW + 1) / 2;
+        //     if (out_coor[i][0] < 0) out_coor[i][0] = 0;
+        //     if (out_coor[i][1] < 0) out_coor[i][1] = 0;
+        // }
+        // /////////////////////////////////////////////////////////////////////////////////
+
+        // for (i = 0; i < 4; i++) {
+        //     out_img[0][(int)out_coor[i][1]][(int)out_coor[i][0]] = 255;
+        //     out_img[1][(int)out_coor[i][1]][(int)out_coor[i][0]] = 0;
+        //     out_img[2][(int)out_coor[i][1]][(int)out_coor[i][0]] = 0;
+        // }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        //printf("theta : \n");
+        //printf("%f %f %f\n", in_theta[0], in_theta[1], in_theta[2]);
+        //printf("%f %f %f\n", in_theta[3], in_theta[4], in_theta[5]);
+        //printf("\n");
+
+        //printf("x : %f, y : %f\n", out_coor[0][0], out_coor[0][1]);
+        return out_img;
+    }
 
 }

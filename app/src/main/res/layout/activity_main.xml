@@ -25,13 +25,23 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
 
+            <!-- android:layout_width="match_parent" -->
+            <!-- android:layout_height="wrap_content" -->
         <ImageView
+            android:id="@+id/ivCaptured"
+            android:layout_width="700px"
+            android:layout_height="700px"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true" />
+
+            <!-- android:id="@+id/banner" -->
+<!--         <com.sh1r0.caffe_android_demo2.ResizableImageView
             android:id="@+id/ivCaptured"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true" />
-
+ -->
         <TextView
             android:id="@+id/tvLabel"
             android:layout_width="wrap_content"

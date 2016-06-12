@@ -19,6 +19,7 @@ public class CaffeMobile {
     public native float[] getConfidenceScore(String imgPath);
 
     public native int[] predictImage(String imgPath, int k);
+    public native float[] predictTheta(String imgPath, int k);
 
     public native float[][] extractFeatures(String imgPath, String blobNames);
 

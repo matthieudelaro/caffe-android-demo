@@ -162,7 +162,7 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         Log.d(LOG_TAG, String.valueOf(bmp.getHeight()));
         Log.d(LOG_TAG, String.valueOf(bmp.getWidth()));
 
-        // dialogPreprocess = ProgressDialog.show(MainActivity.this, "Preprocessing...", "Wait for one sec...", true);
+        dialogPreprocess = ProgressDialog.show(MainActivity.this, "Preprocessing...", "Wait for one sec...", true);
         // imgPath = pre_preprocess(imgPath);
         PreprocessTask preprocessTask = new PreprocessTask(MainActivity.this, MainActivity.this);
         preprocessTask.execute(imgPath);
@@ -268,7 +268,8 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
 
         // convert to gray
         bmp = toGrayscale(bmp);
-        String newPath = saveToFile(bmp, imgPath + ".gray.png");
+        String newPath = "";
+        // newPath = saveToFile(bmp, imgPath + ".gray.png");
 
         // scale down:  4000x3000 => ~90*60
         int height = bmp.getHeight();
@@ -291,8 +292,8 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
             }
         }
 
-        bmp = toGrayscale(bmp);
-        newPath = saveToFile(bmp, imgPath + ".gray.png");
+        // bmp = toGrayscale(bmp);
+        // newPath = saveToFile(bmp, imgPath + ".gray.png");
 
         // convert to array of pixels
         int[][][] pixels = bitmap2int(bmp);
@@ -331,8 +332,8 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
             height = newHeight;
             width = newWidth;
         }
-        bmp = int2bitmap(pixels);
-        newPath = saveToFile(bmp, imgPath + ".gray.cropped.png");
+        // bmp = int2bitmap(pixels);
+        // newPath = saveToFile(bmp, imgPath + ".gray.cropped.png");
 
         // set small values to 0
         final int limit2 = 40;
@@ -447,9 +448,9 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         btnCamera.setEnabled(true);
         btnSelect.setEnabled(true);
 
-        // if (dialogPreprocess != null) {
-        //     dialogPreprocess.dismiss();
-        // }
+        if (dialogPreprocess != null) {
+            dialogPreprocess.dismiss();
+        }
 
         // if (dialog != null) {
         //     dialog.dismiss();

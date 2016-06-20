@@ -618,6 +618,9 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         for (i = 0; i < 40; i++){
             Log.d(LOG_TAG, "out_coor " + String.valueOf(out_coor[i][0]) + " " + String.valueOf(out_coor[i][1]));
             // Log.d(LOG_TAG, "" + String.valueOf());
+            // out_img[0][ (int)out_coor[i][1] ][ (int)out_coor[i][0] ] = 255;
+            // out_img[1][ (int)out_coor[i][1] ][ (int)out_coor[i][0] ] = 0;
+            // out_img[2][ (int)out_coor[i][1] ][ (int)out_coor[i][0] ] = 0;
             out_img[0][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 255;
             out_img[1][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 0;
             out_img[2][ (int)out_coor[i][0] ][ (int)out_coor[i][1] ] = 0;

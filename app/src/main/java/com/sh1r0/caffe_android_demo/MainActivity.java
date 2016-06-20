@@ -126,8 +126,8 @@ public class MainActivity extends Activity implements CNNListener, PreprocessLis
         // }
 
 
-        initPrediction();
-        predictImage("/sdcard/Pictures/MNIST/IMG_20160612_184402.jpg.gray.cropped.darkened.png");
+        // initPrediction();
+        // predictImage("/sdcard/Pictures/MNIST/IMG_20160612_184402.jpg.gray.cropped.darkened.png");
     }
 
     @Override

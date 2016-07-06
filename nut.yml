@@ -38,8 +38,8 @@ macros:
     container_working_directory: /opt/nut/describe/caffe-android-demo
     actions:
     - chmod +x gradlew
-    # - ./gradlew assembleDebug
-    - ./gradlew assembleDebug --offline
+    - ./gradlew assembleDebug
+    # - ./gradlew assembleDebug --offline
     # - chmod +x gradlew.bat
     # - ./gradlew.bat
   deploy-caffe-to-app:
